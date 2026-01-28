@@ -15,12 +15,15 @@
  */
 package com.alibaba.cloud.ai.dataagent.util;
 
+import com.alibaba.cloud.ai.dataagent.bo.schema.ResultSetBO;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.dataagent.dto.planner.ExecutionStep;
 import com.alibaba.cloud.ai.dataagent.dto.planner.Plan;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.core.ParameterizedTypeReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +37,7 @@ import static com.alibaba.cloud.ai.dataagent.constant.Constant.PLAN_CURRENT_STEP
  *
  * @author zhangshenghang
  */
+@Slf4j
 public final class PlanProcessUtil {
 
 	private static final BeanOutputConverter<Plan> converter;
@@ -131,4 +135,38 @@ public final class PlanProcessUtil {
 		return updatedResults;
 	}
 
+	public static List<List<Map<String, String>>> convertExecutionResultsToList(
+			HashMap<String, String> executionResults, Integer sampleDataNumber) {
+		List<List<Map<String, String>>> convertedResults = new ArrayList<>();
+		if (executionResults.isEmpty()) {
+			return convertedResults;
+		}
+		// 按照步骤顺序处理结果
+		for (int i = 1; i <= executionResults.size(); i++) {
+			String stepKey = "step_" + i;
+			String jsonResult = executionResults.get(stepKey);
+			if (jsonResult != null && !jsonResult.isEmpty()) {
+				try {
+					// 将 JSON 字符串转换为 ResultSetBO 对象
+					ResultSetBO resultSetBO = JsonUtil.getObjectMapper().readValue(jsonResult, ResultSetBO.class);
+
+					// 提取 ResultSetBO 中的 data 字段
+					List<Map<String, String>> stepData = resultSetBO.getData();
+					if (stepData != null) {
+						if (sampleDataNumber != null && sampleDataNumber > 0) {
+							convertedResults.add(stepData.stream().limit(sampleDataNumber).toList());
+						}
+						else {
+							convertedResults.add(stepData);
+						}
+					} else {
+						convertedResults.add(new ArrayList<>());
+					}
+				} catch (Exception e) {
+					log.error("Failed to parse execution result for step {}: {}", stepKey, e.getMessage());
+				}
+			}
+		}
+		return convertedResults;
+	}
 }

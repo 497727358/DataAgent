@@ -51,7 +51,7 @@
     <spotless-maven-plugin.version>3.1.0</spotless-maven-plugin.version>
     <docker-java.version>3.5.3</docker-java.version>
     <gpdb.version>3.0.0</gpdb.version>
-    <druid.version>1.2.22</druid.version>
+    <druid.version>1.2.27</druid.version>
     <postgresql.version>42.4.1</postgresql.version>
     <commons-collections.version>3.2.1</commons-collections.version>
     <commons-io.version>2.18.0</commons-io.version>

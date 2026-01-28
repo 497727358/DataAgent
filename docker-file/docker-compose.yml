@@ -13,57 +13,24 @@
 #limitations under the License.
 
 services:
-  # MySQL数据库
-  mysql:
-    image: mysql:8.0
-    container_name: data-agent-mysql-inner
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: nl2sql_db
-#    volumes:
-#      - nl2sql-mysql-inner-data:/var/lib/mysql
-    networks:
-      - app-network
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   # 后端服务
   backend:
-    build:
-      context: ..
-      dockerfile: ./docker-file/Dockerfile-backend
-      tags:
-        - saa-data-agent-backend:1.0.0-SNAPSHOT
+    image: data-agent-backend:0.1
     container_name: data-agent-backend
     environment:
-      - NL2SQL_DATASOURCE_URL=jdbc:mysql://mysql:3306/nl2sql_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - NL2SQL_DATASOURCE_URL=jdbc:mysql://192.168.1.69:3306/nl2sql_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       - NL2SQL_DATASOURCE_USERNAME=root
       - NL2SQL_DATASOURCE_PASSWORD=root
       - AI_DASHSCOPE_API_KEY=${AI_DASHSCOPE_API_KEY}
     ports:
       - "8065:8065"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      mysql-data:
-        condition: service_healthy
-      postgres-data:
-        condition: service_healthy
     networks:
       - app-network
     restart: no
 
   # Vue前端服务
   frontend:
-    build:
-      context: ..
-      dockerfile: ./docker-file/Dockerfile-frontend
-      tags:
-        - saa-data-agent-frontend:1.0.0-SNAPSHOT
+    image: data-agent-frontend:0.1
     container_name: data-agent-frontend
     ports:
       - "3000:3000"  # 只暴露前端端口
@@ -74,45 +41,6 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-
-  # MySQL 模拟数据源
-  mysql-data:
-    image: mysql:8.0
-    container_name: data-agent-mysql-datasource
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-    networks:
-      - app-network
-    volumes:
-      - ./config/mysql:/docker-entrypoint-initdb.d
-    command: --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # PostgreSQL 模拟数据源
-  postgres-data:
-    image: postgres:15
-    container_name: data-agent-postgres-datasource
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    networks:
-      - app-network
-    volumes:
-      - ./config/postgres:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-volumes:
-  data-agent-mysql-inner-data:
 
 networks:
   app-network:
