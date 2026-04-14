@@ -262,13 +262,13 @@ public class DataAgentProperties {
 		private int tableTopkLimit = 10;
 
 		// 设置低尽可能保证表不会召回漏掉
-		private double tableSimilarityThreshold = 0.2;
+		private double tableSimilarityThreshold = 0.1;
 
 		// 全局默认配置（给 BusinessTerm, AgentKnowledge 等使用）
 		/**
 		 * 相似度阈值配置，用于过滤相似度分数大于等于此阈值的文档
 		 */
-		private double defaultSimilarityThreshold = 0.4;
+		private double defaultSimilarityThreshold = 0.1;
 
 		/**
 		 * 查询时返回的最大文档数量

@@ -16,6 +16,7 @@
 package com.alibaba.cloud.ai.dataagent.service.aimodelconfig;
 
 import com.alibaba.cloud.ai.dataagent.dto.ModelConfigDTO;
+import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -48,6 +49,8 @@ import reactor.netty.transport.ProxyProvider;
 @RequiredArgsConstructor
 public class DynamicModelFactory {
 
+	private final ObservationRegistry observationRegistry;
+
 	/**
 	 * 统一使用 OpenAiChatModel，通过 baseUrl 实现多厂商兼容
 	 */
@@ -79,7 +82,7 @@ public class DynamicModelFactory {
 			.streamUsage(true)
 			.build();
 		// 4. 返回统一的 OpenAiChatModel
-		return OpenAiChatModel.builder().openAiApi(openAiApi).defaultOptions(openAiChatOptions).build();
+		return OpenAiChatModel.builder().openAiApi(openAiApi).observationRegistry(observationRegistry).defaultOptions(openAiChatOptions).build();
 	}
 
 	/**
