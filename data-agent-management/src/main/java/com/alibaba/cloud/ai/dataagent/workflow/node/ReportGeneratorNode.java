@@ -79,7 +79,6 @@ public class ReportGeneratorNode implements NodeAction {
 		@SuppressWarnings("unchecked")
 		HashMap<String, String> executionResults = StateUtil.getObjectValue(state, SQL_EXECUTE_NODE_OUTPUT,
 				HashMap.class, new HashMap<>());
-
 		// Parse plan and get current step
 		Plan plan = converter.convert(plannerNodeOutput);
 		ExecutionStep executionStep = getCurrentExecutionStep(plan, currentStep);
@@ -97,9 +96,10 @@ public class ReportGeneratorNode implements NodeAction {
 			// ignore parse error, treat as global config
 		}
 
+		String userOriginalInput = StateUtil.getStringValue(state, INPUT_KEY);
 		// Generate report streaming flux
 		Flux<ChatResponse> reportGenerationFlux = generateReport(userInput, plan, executionResults,
-				summaryAndRecommendations, agentId);
+				summaryAndRecommendations, agentId, userOriginalInput);
 
 		TextType reportTextType = TextType.MARK_DOWN;
 
@@ -142,7 +142,7 @@ public class ReportGeneratorNode implements NodeAction {
 	 * Generates the analysis report.
 	 */
 	private Flux<ChatResponse> generateReport(String userInput, Plan plan, HashMap<String, String> executionResults,
-			String summaryAndRecommendations, Long agentId) {
+			String summaryAndRecommendations, Long agentId, String userOriginalInput) {
 		// Build user requirements and plan description
 		String userRequirementsAndPlan = buildUserRequirementsAndPlan(userInput, plan);
 
@@ -154,7 +154,7 @@ public class ReportGeneratorNode implements NodeAction {
 				agentId);
 
 		String reportPrompt = PromptHelper.buildReportGeneratorPromptWithOptimization(userRequirementsAndPlan,
-				analysisStepsAndData, summaryAndRecommendations, optimizationConfigs);
+				analysisStepsAndData, summaryAndRecommendations, optimizationConfigs, userOriginalInput);
 		log.debug("Report Node Prompt: \n {} \n", reportPrompt);
 		return llmService.callUser(reportPrompt);
 	}

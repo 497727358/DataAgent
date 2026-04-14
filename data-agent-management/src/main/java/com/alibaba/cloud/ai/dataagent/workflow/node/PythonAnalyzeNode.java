@@ -15,16 +15,14 @@
  */
 package com.alibaba.cloud.ai.dataagent.workflow.node;
 
+import com.alibaba.cloud.ai.dataagent.util.*;
 import com.alibaba.cloud.ai.graph.GraphResponse;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
 import com.alibaba.cloud.ai.dataagent.prompt.PromptConstant;
 import com.alibaba.cloud.ai.dataagent.service.llm.LlmService;
-import com.alibaba.cloud.ai.dataagent.util.FluxUtil;
-import com.alibaba.cloud.ai.dataagent.util.PlanProcessUtil;
-import com.alibaba.cloud.ai.dataagent.util.StateUtil;
-import com.alibaba.cloud.ai.dataagent.util.ChatResponseUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -72,8 +70,8 @@ public class PythonAnalyzeNode implements NodeAction {
 
 			Flux<GraphResponse<StreamingOutput>> generator = FluxUtil.createStreamingGeneratorWithMessages(
 					this.getClass(), state, "正在处理分析结果...\n", "\n处理完成。", aiResponse -> {
-						Map<String, String> updatedSqlResult = new HashMap<>(sqlExecuteResult);
-						updatedSqlResult.put("step_" + currentStep + "_analysis", fallbackMessage);
+						Map<String, String> updatedSqlResult = PlanProcessUtil.addStepResult(sqlExecuteResult,
+								currentStep, fallbackMessage);
 						log.info("python fallback message: {}", fallbackMessage);
 						return Map.of(SQL_EXECUTE_NODE_OUTPUT, updatedSqlResult, PLAN_CURRENT_STEP, currentStep + 1);
 					}, fallbackFlux);
@@ -88,10 +86,16 @@ public class PythonAnalyzeNode implements NodeAction {
 
 		Flux<GraphResponse<StreamingOutput>> generator = FluxUtil.createStreamingGeneratorWithMessages(this.getClass(),
 				state, "正在分析代码运行结果...\n", "\n结果分析完成。", aiResponse -> {
-					Map<String, String> updatedSqlResult = new HashMap<>(sqlExecuteResult);
-					updatedSqlResult.put("step_" + currentStep + "_analysis", aiResponse);
+					String pythonAnalyzeResult = aiResponse;
+					try {
+						pythonAnalyzeResult = JsonUtil.getObjectMapper().writeValueAsString(Map.of("分析数据", pythonOutput, "分析结果", aiResponse));
+					} catch (JsonProcessingException e) {
+						log.error("python analyze result error: {}", e.getMessage());
+					}
+					Map<String, String> updatedSqlResult = PlanProcessUtil.addStepResult(sqlExecuteResult, currentStep,
+							pythonAnalyzeResult);
 					log.info("python analyze result: {}", aiResponse);
-					return Map.of(SQL_EXECUTE_NODE_OUTPUT, updatedSqlResult, PLAN_CURRENT_STEP, currentStep + 1);
+                    return Map.of(SQL_EXECUTE_NODE_OUTPUT, updatedSqlResult, PLAN_CURRENT_STEP, currentStep + 1);
 				}, pythonAnalyzeFlux);
 
 		return Map.of(PYTHON_ANALYSIS_NODE_OUTPUT, generator);

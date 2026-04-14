@@ -142,13 +142,15 @@ public class PromptHelper {
 	 * @return built prompt
 	 */
 	public static String buildReportGeneratorPromptWithOptimization(String userRequirementsAndPlan,
-			String analysisStepsAndData, String summaryAndRecommendations, List<UserPromptConfig> optimizationConfigs) {
+			String analysisStepsAndData, String summaryAndRecommendations, List<UserPromptConfig> optimizationConfigs,
+			String userOriginalInput) {
 
 		Map<String, Object> params = new HashMap<>();
 		params.put("user_requirements_and_plan", userRequirementsAndPlan);
 		params.put("analysis_steps_and_data", analysisStepsAndData);
 		params.put("summary_and_recommendations", summaryAndRecommendations);
 		params.put("json_example", cleanJsonExample);
+		params.put("user_original_input", userOriginalInput);
 
 		// Build optional optimization section content from user configs
 		String optimizationSection = buildOptimizationSection(optimizationConfigs, params);
