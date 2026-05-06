@@ -145,6 +145,9 @@ public final class Constant {
 	// nl2sql接口预留相关
 	public static final String IS_ONLY_NL2SQL = "IS_ONLY_NL2SQL";
 
+	// nl2queryData接口预留相关
+	public static final String IS_ONLY_NL2QUERY_DATA = "IS_ONLY_NL2QUERY_DATA";
+
 	// 人类复核相关
 	public static final String HUMAN_REVIEW_ENABLED = "HUMAN_REVIEW_ENABLED";
 

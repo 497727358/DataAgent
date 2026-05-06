@@ -61,6 +61,10 @@ public class PythonExecutorDispatcher implements EdgeAction {
 			}
 		}
 		// Go to code execution result analysis node
+		boolean isOnlyNl2QueryData = state.value(IS_ONLY_NL2QUERY_DATA, false);
+		if (isOnlyNl2QueryData) {
+			return END;
+		}
 		return PYTHON_ANALYZE_NODE;
 	}
 

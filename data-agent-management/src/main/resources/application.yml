@@ -37,6 +37,12 @@ spring:
         embeddingDimension: 1536
         indexType: IVF_FLAT
         metricType: COSINE
+    mcp:
+      server:
+        enabled: true
+        stdio: false
+        name: mcp-server
+        sse-endpoint: /mcp/sse
 
     alibaba:
       data-agent:

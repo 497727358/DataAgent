@@ -77,6 +77,15 @@ public class GraphServiceImpl implements GraphService {
 	}
 
 	@Override
+	public String nl2QueryData(String naturalQuery, String agentId) throws GraphRunnerException {
+		OverAllState state = compiledGraph
+			.invoke(Map.of(IS_ONLY_NL2QUERY_DATA, true, INPUT_KEY, naturalQuery, AGENT_ID, agentId),
+					RunnableConfig.builder().build())
+			.orElseThrow();
+		return state.value(PYTHON_EXECUTE_NODE_OUTPUT, "");
+	}
+
+	@Override
 	public void graphStreamProcess(Sinks.Many<ServerSentEvent<GraphNodeResponse>> sink, GraphRequest graphRequest) {
 		if (!StringUtils.hasText(graphRequest.getThreadId())) {
 			graphRequest.setThreadId(UUID.randomUUID().toString());

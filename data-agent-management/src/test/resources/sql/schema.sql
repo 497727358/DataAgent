@@ -186,6 +186,21 @@ CREATE TABLE IF NOT EXISTS chat_message (
   FOREIGN KEY (session_id) REFERENCES chat_session(id) ON DELETE CASCADE
 ) ENGINE = InnoDB COMMENT = '聊天消息表';
 
+-- 工作流大模型调用Token记录表
+CREATE TABLE IF NOT EXISTS llm_token_usage (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  session_id VARCHAR(36) NOT NULL COMMENT '会话ID（工作流threadId）',
+  node_name VARCHAR(255) NOT NULL COMMENT '工作流节点名称',
+  input_token_count INT DEFAULT 0 COMMENT '输入token数',
+  output_token_count INT DEFAULT 0 COMMENT '输出token数',
+  cache_hit TINYINT DEFAULT 0 COMMENT '是否命中缓存：0-否，1-是',
+  create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (id),
+  INDEX idx_llm_token_usage_session_id (session_id),
+  INDEX idx_llm_token_usage_node_name (node_name),
+  INDEX idx_llm_token_usage_create_time (create_time)
+) ENGINE = InnoDB COMMENT = '工作流大模型调用Token记录表';
+
 -- 用户Prompt配置表
 CREATE TABLE IF NOT EXISTS user_prompt_config (
   id VARCHAR(36) NOT NULL COMMENT '配置ID（UUID）',
